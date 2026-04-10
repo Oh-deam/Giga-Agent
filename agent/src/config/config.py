@@ -11,7 +11,7 @@ class Config (BaseSettings):
             extra="ignore"
         )
 
-    async def update_access_token(self):
+    def update_access_token(self):
         if self.AUTHORIZATION_KEY:
             url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
 
@@ -25,8 +25,8 @@ class Config (BaseSettings):
                 'Authorization': f'Basic {self.AUTHORIZATION_KEY}'
             }
 
-            async with httpx.AsyncClient(verify=False) as client:
-                response = await client.post(url, headers=headers, data=payload)
+            with httpx.Client(verify=False) as client:
+                response = client.post(url, headers=headers, data=payload)
 
                 if response.status_code == 200:
                     self.ACCESS_TOKEN = response.json()['access_token']

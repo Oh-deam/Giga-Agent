@@ -1,13 +1,16 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class JoinCondition(BaseModel):
-    table_name: str # Имя очередной таблицы для объединения
-    on_col1: str # по какому столбцу в первой таблице
-    on_col2: str # по какому столбцу во второй таблице
+    """Одно условие объединения текущей таблицы со следующей таблицей."""
+
+    table_name: str = Field(description="Имя очередной таблицы для объединения")# Имя очередной таблицы для объединения
+    on_col1: str = Field(description="Столбец для объединения в текущей таблице")# по какому столбцу в первой таблице
+    on_col2: str = Field(description="Столбец для объединения в очередной таблице")# по какому столбцу во второй таблице
 
 
 class JoinConditions(BaseModel):
-    conditions: list[JoinCondition] # Список условий объединения
+    """Набор условий объединения таблиц в правильном порядке."""
+    conditions: list[JoinCondition] = Field(description="Список таблиц с условиями объединения") # Список условий объединения
 
 """ JoinConditions(
     conditions=[
