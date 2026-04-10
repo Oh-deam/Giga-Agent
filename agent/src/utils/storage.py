@@ -48,3 +48,9 @@ class Storage:
     def tables_headers(self):
         return [f"{table} ({', '.join(self._tables[table].columns)})" for table in self._tables]
 
+
+    def get_table(self, table_name: str):
+        table = self._tables.get(table_name)
+        if table is None:
+            raise Exception(f"Table {table_name} not found")
+        return table
