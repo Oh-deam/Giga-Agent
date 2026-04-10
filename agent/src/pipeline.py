@@ -3,9 +3,11 @@ import loguru
 import pandas as pd
 from langchain_gigachat import GigaChat
 
+from .schemas.future import Proposal
 from .utils.storage import Storage
 from .schemas.tables import JoinConditions
 from .tools.join_tables import merge_tables
+from .tools.stat import create_stat
 
 
 def pipeline(
@@ -46,4 +48,18 @@ def pipeline(
     loguru.logger.debug(f"Df_train shape: {df_train.shape}")
     loguru.logger.debug(f"Df_test shape: {df_test.shape}")
 
+    # describe = call function for get stat
+    # ask llm for creating new features
+    # parse llm's answer (schema for answer?)
+    #
+    stat = create_stat(df_train, "target")
+    description = storage.description
 
+    structured_future_llm = model.with_structured_output(Proposal)
+    future_engineering_prompt = f"""
+        Придумай новые фичи исходя из описания колонок
+        {stat}\n
+        {description}\n
+    """
+    result = structured_future_llm.invoke(future_engineering_prompt)
+    loguru.logger.debug(f"Result from GigaChat: {result}")
