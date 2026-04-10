@@ -10,8 +10,10 @@ def merge_tables(joinconditions: JoinConditions, storage: Storage):
     for condition in joinconditions:
         df_for_join = storage.get_table(f"{condition.table_name}")
 
-        pd.merge(df_train, df_for_join, left_on=f"{condition.on_col1}", right_on=f"{condition.on_col2}")
-        pd.merge(df_test, df_for_join, left_on=f"{condition.on_col1}", right_on=f"{condition.on_col2}")
+        df_train=pd.merge(df_train, df_for_join, left_on=f"{condition.on_col1}", right_on=f"{condition.on_col2}")
+        df_test=pd.merge(df_test, df_for_join, left_on=f"{condition.on_col1}", right_on=f"{condition.on_col2}")
+
+    return df_train, df_test
 
 
 
