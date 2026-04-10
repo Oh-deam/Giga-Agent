@@ -58,8 +58,22 @@ def pipeline(
     structured_future_llm = model.with_structured_output(Proposal)
     future_engineering_prompt = f"""
         Придумай новые фичи исходя из описания колонок
+        Причем фича может создаваться путем действия над несколькими колонками 
+        В таком случае ты должен последовательно вернуть Proposals, которые можно интерпретировать как одно сложное действие
+        Например:
+        FutureProposal(col1='base_col1', col2='base_col2', new_col_name='new_col1', action=<ACTIONS.Addition: 'Addition'>, reason='Действие 1.', save_col=False), 
+        FutureProposal(col1='new_col1', col2='base_col3', new_col_name='new_col', action=<ACTIONS.Multiplication: 'Multiplication'>, reason='Действие 2', save_col=True) 
+        Здесь первый Proposal - временный, нужный для вычисления new_col, поэтому устанавливаем save_col=False, чтобы удалить его из итогового датасета
+        
+        Можно делать и фичи, созданные из четырех и более колонок
+        Обязательно подумай, какие будут самыми эффективными и помогут в обучении модели машинного обучения 
         {stat}\n
         {description}\n
     """
+    loguru.logger.debug(f"Len prompt: {len(future_engineering_prompt)}")
+    loguru.logger.debug(f"Future prompt: {future_engineering_prompt}")
     result = structured_future_llm.invoke(future_engineering_prompt)
     loguru.logger.debug(f"Result from GigaChat: {result}")
+
+    for prop in result.proposal:
+        loguru.logger.debug(f"Proposal: {prop}")
