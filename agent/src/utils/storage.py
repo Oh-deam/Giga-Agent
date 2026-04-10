@@ -34,7 +34,7 @@ class Storage:
                 table = pd.read_csv(os.path.join(path, file))
                 self._add_table(table, file)
             elif file == "readme.txt":
-                with open(os.path.join(path, file), "r") as f:
+                with open(os.path.join(path, file), "r", encoding="utf-8") as f:
                     data = f.read()
                 self._add_description(data)
             else:
@@ -54,3 +54,4 @@ class Storage:
         if table is None:
             raise Exception(f"Table {table_name} not found")
         return table
+
