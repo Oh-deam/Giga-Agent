@@ -1,3 +1,5 @@
+import loguru
+
 import pandas as pd
 from langchain_gigachat import GigaChat
 
@@ -21,9 +23,10 @@ def pipeline(
     {storage.tables_headers}
 """
     result = structured_llm.invoke(prompt)
+    loguru.logger.debug(f"Result from GigaChat: {result}")
     df_train, df_test = merge_tables(joinconditions=result, storage=storage)
 
-    print(f"Df_train shape: {df_train.shape}")
-    print(f"Df_test shape: {df_test.shape}")
+    loguru.logger.debug(f"Df_train shape: {df_train.shape}")
+    loguru.logger.debug(f"Df_test shape: {df_test.shape}")
 
 
