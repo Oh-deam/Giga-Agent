@@ -12,8 +12,8 @@ def _validate_value(col: str):
 
 def create_new_futures(df, proposals: Proposal):
     new_df = pd.DataFrame()
-    loguru.logger.debug(f"Columns in base dataframe: {df.columns}")
-    print(f"Base df:\n {df.head()}")
+    # loguru.logger.debug(f"Columns in base dataframe: {df.columns}")
+    # print(f"Base df:\n {df.head()}")
     for proposal in proposals.proposal:
 
         start_col = proposal.fields[0]

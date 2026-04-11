@@ -1,5 +1,6 @@
 from typing import Literal
 
+import loguru
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
 
@@ -10,7 +11,9 @@ from src.schemas.state import FeatureState, Decision
 def route_after_evaluation(
     state: FeatureState,
 ) -> Literal["generate_features", "improve_features", "save_features"]:
+    loguru.logger.debug(f"ROute after evaluation: attempt {state.attempt}")
     if state.attempt >= state.max_attempt:
+        loguru.logger.warning('state.attempt >= state.max_attempt!!!')
         return "save_features"
     if state.decision == Decision.RETRY:
         return "generate_features"
