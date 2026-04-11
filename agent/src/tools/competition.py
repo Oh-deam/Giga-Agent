@@ -6,10 +6,22 @@ from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score
 
 from src.schemas.future import Proposal
+from src.schemas.state import FeatureState
 from src.tools.prompt import PromptFactory
 from src.tools.stat import create_stat
 from src.tools.future import create_new_futures
 from src.utils.storage import Storage
+
+
+# def _ask_gigachat(
+#         state: FeatureState,
+# ):
+#     pass
+#
+#
+# def _evaluate_result(
+#
+# )
 
 
 def _test_dataframe(
@@ -29,7 +41,7 @@ def _test_dataframe(
     pred = boost.predict_proba(X_test)[:, 1]
 
     importances = pd.Series(boost.get_feature_importance(), index=X_train.columns).sort_values(ascending=False)
-    top5_features = importances.head(TOP_K).index.tolist()
+    top5_features = importances.head(TOP_K)
     if not final_fit:
         loguru.logger.debug(f"TOP {TOP_K}: {top5_features}")
 
