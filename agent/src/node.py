@@ -1,5 +1,7 @@
 from typing import Literal
 
+import loguru
+
 from src.schemas.future import Proposal
 from src.schemas.state import FeatureState, GigaChatDecision, Decision, Attempt
 from src.tools.competition import _test_dataframe
@@ -37,10 +39,10 @@ class Nodes:
         df_tt = create_new_futures(self.df_test, result)
 
         roc_auc, top5_features = _test_dataframe(df_tr, df_tt)
-
-        df_tr = df_tr[top5_features]
+        best_cols = top5_features.index.tolist()
+        df_tr = df_tr[best_cols]
         df_tr["target"] = self.df_train["target"]
-        df_tt = df_tt[top5_features]
+        df_tt = df_tt[best_cols]
         df_tt["target"] = self.df_test["target"]
 
         roc_auc, top5_features = _test_dataframe(df_tr, df_tt)
@@ -51,8 +53,8 @@ class Nodes:
         # 2. обучить модель
         # 3. получить roc_auc
         # 4. получить feature importance
-        roc_auc = 0.71
-        improvement = top5_features.model_dump_json(indent=2, ensure_ascii=False)
+        # roc_auc = 0.71
+        improvement = top5_features.to_dict()
 
         new_attempt = Attempt(
             features=result,
@@ -69,9 +71,13 @@ class Nodes:
         """
         Улучшение последнего Proposal на основе результатов предыдущих попыток.
         """
+        loguru.logger.debug(f"IMPROVING FEATURES")
         last_attempt = state.attempts[-1]
-
-        prompt = f"""
+        base_prompt = PromptFactory.create_prompt_for_future_engineering(
+            stat=self.stat,
+            description=self.description,
+        )
+        prompt = base_prompt + f"""
             Ты улучшаешь набор предложенных фичей.
             
             Текущая попытка: {state.attempt} из {state.max_attempt}
@@ -92,14 +98,43 @@ class Nodes:
             - вернуть обновленный Proposal
             """
 
-        improved_proposal: Proposal = self.llm.invoke_structured(
-            prompt=prompt,
-            response_model=Proposal,
+
+        structured_llm: Proposal = self.llm.with_structured_output(
+            Proposal
         )
 
-        # Здесь снова ваша бизнес-логика пересчёта
-        roc_auc = 0.73
-        improvement = {"feature_c": 0.37, "feature_d": 0.21}
+        result = structured_llm.invoke(prompt)
+
+        df_tr = create_new_futures(self.df_train, result)
+        df_tt = create_new_futures(self.df_test, result)
+
+        roc_auc, top5_features = _test_dataframe(df_tr, df_tt)
+        best_cols = top5_features.index.tolist()
+        df_tr = df_tr[best_cols]
+        df_tr["target"] = self.df_train["target"]
+        df_tt = df_tt[best_cols]
+        df_tt["target"] = self.df_test["target"]
+
+        roc_auc, top5_features = _test_dataframe(df_tr, df_tt)
+
+        # Здесь у вас должна быть ваша логика:
+        # 1. посчитать новые фичи
+        # 2. обучить модель
+        # 3. получить roc_auc
+        # 4. получить feature importance
+        # roc_auc = 0.71
+        improvement = top5_features.to_dict()
+
+        new_attempt = Attempt(
+            features=result,
+            roc_auc=roc_auc,
+            improvement=improvement,
+        )
+
+        return state.model_copy(update={
+            "attempts": [*state.attempts, new_attempt],
+            "attempt": state.attempt + 1,
+        })
 
         new_attempt = Attempt(
             features=improved_proposal,
@@ -118,8 +153,9 @@ class Nodes:
         Оценка: retry / improve / finish.
         """
         last_attempt = state.attempts[-1]
-
+        loguru.logger.debug(f"attempts: {state.attempt} roc_auc: {last_attempt.roc_auc}")
         if state.attempt >= state.max_attempt:
+            loguru.logger.info(f"Attemp {state.attempt} is max attempt {state.max_attempt}")
             return state.model_copy(update={"decision": Decision.FINISH})
 
         prompt = f"""
@@ -141,7 +177,7 @@ class Nodes:
                 - RETRY: попробовать заново сгенерировать новый набор
                 - IMPROVE: улучшить текущий Proposal
                 - FINISH: завершить и сохранить лучший результат
-                
+                Можешь пробовать улучшить результат, все попытки сохраняются и после выбирается наилучшая. Так что не бойся экспериментировать
                 Верни строго GigaChatDecision.
                 """
 
@@ -149,7 +185,9 @@ class Nodes:
             GigaChatDecision
         )
         result = structured_llm.invoke(prompt)
+        loguru.logger.debug(f"Result on evaluate: {result}")
         return state.model_copy(update={"decision": result.decision})
+
 
     def save_features(self, state: FeatureState) -> FeatureState:
         """
@@ -162,7 +200,7 @@ class Nodes:
         df_train_final = create_new_futures(self.df_train, best_attempt.features)
         df_test_final = create_new_futures(self.df_test, best_attempt.features)
 
-        df_train_final.to_csv("data/train_featured.csv", index=False)
-        df_test_final.to_csv("data/test_featured.csv", index=False)
+        df_train_final.to_csv("output/train_featured.csv", index=False)
+        df_test_final.to_csv("output/test_featured.csv", index=False)
 
         return state
