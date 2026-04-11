@@ -5,7 +5,9 @@ import loguru
 import pandas as pd
 from langchain_gigachat import GigaChat
 
+from .builder import build_graph
 from .schemas.future import Proposal
+from .schemas.state import FeatureState
 from .tools.prompt import PromptFactory
 from .utils.storage import Storage
 from .schemas.tables import JoinConditions
@@ -81,10 +83,19 @@ def pipeline(
     # parse llm's answer (schema for answer?)
     #
 
-    best_train_df, best_test_df = future_competition(model, df_train, df_test, storage)
-    os.makedirs("./output", exist_ok=True)
-    best_train_df.to_csv(f"./output/train.csv", index=False)
-    best_test_df.to_csv(f"./output/test.csv", index=False)
+    # best_train_df, best_test_df = future_competition(model, df_train, df_test, storage)
+    builder = build_graph(llm = model, df_train=df_train, df_test=df_test, description=storage.description)
+    graph = builder.compile()
+    initial_state = FeatureState(
+        attempts=[],
+        attempt=0,
+        max_attempt=5,
+    )
+
+    result = graph.invoke(initial_state)
+    # os.makedirs("./output", exist_ok=True)
+    # best_train_df.to_csv(f"./output/train.csv", index=False)
+    # best_test_df.to_csv(f"./output/test.csv", index=False)
 
 
 
