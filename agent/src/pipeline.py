@@ -41,7 +41,7 @@ def pipeline(
                 Доступные таблицы и их столбцы:
                 {storage.tables_headers}
 
-                Верни упорядоченную последовательность джойнов строго по схеме JoinConditions. В ответе не должно быть ни data_dictionary.csv, ни test.csv, ни несуществующих столбцов.
+                Верни упорядоченную последовательность джойнов строго по схеме JoinConditions (НАЗВАНИЯ МЕТОДОВ АГРЕГИРОВАНИЯ В НИЖНЕМ РЕГИСТРЕ). В ответе не должно быть ни data_dictionary.csv, ни test.csv, ни несуществующих столбцов.
 """
     result = structured_llm.invoke(prompt)
     loguru.logger.debug(f"Result from GigaChat: {result}")
