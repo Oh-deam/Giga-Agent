@@ -15,12 +15,10 @@ class ACTIONS(enum.Enum):
 class FutureProposal(BaseModel):
     """Предложенные фьючерсы"""
 
-    col1: str = Field(description="Название существующей (или ранее созданной) колонки")
-    col2: str | float | int = Field(description="Имя колонки или число для действия с первой колонкой")
+    fields: list[str | int | float] = Field(description="Список полей, которые нужно создать, могут быть названия строк или числа")
     new_col_name: str = Field(description="Имя новой колонки")
-    action: ACTIONS = Field(description="Действие, которое нужно совершить")
+    actions: list[ACTIONS] = Field(description="Действия, которое нужно совершить последовательно для fields. Если fields не пустой, то actions тоже обязан быть заполнен")
     reason: str = Field(description="Причина, по которой нужно создать именно эту колонку")
-    save_col: bool = Field(description="Понадобится ли сохранить колонку в финальной версии датасета (если это временная колонка для вычисления - тогда False)", default=False)
 
 
 class Proposal(BaseModel):
