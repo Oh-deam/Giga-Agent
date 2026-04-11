@@ -62,4 +62,5 @@ def create_new_futures(df, proposals: Proposal):
                     tmp_series = np.log(tmp_series)
 
         new_df[proposal.new_col_name] = tmp_series
+    new_df["target"] = df["target"]
     return new_df
