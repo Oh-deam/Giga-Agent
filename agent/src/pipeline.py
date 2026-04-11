@@ -1,3 +1,5 @@
+import os
+
 import loguru
 
 import pandas as pd
@@ -135,6 +137,12 @@ def pipeline(
         loguru.logger.debug(f"Proposal: {prop}")
 
     loguru.logger.debug(f"New futures: {len(result.proposal)}")
-    new_df = create_new_futures(df_train, result)
-    loguru.logger.debug(f"After future engineering: {new_df.shape[1]}")
-    print(new_df.head())
+    train_df = create_new_futures(df_train, result)
+    test_df = create_new_futures(df_test, result)
+    loguru.logger.debug(f"After future engineering: {train_df.shape[1]}")
+    print(train_df.head())
+    print(train_df.describe())
+
+    os.makedirs("./output", exist_ok=True)
+    train_df.to_csv("./output/train.csv", index=False)
+    test_df.to_csv("./output/test.csv", index=False)
