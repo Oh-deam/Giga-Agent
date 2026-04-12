@@ -1,8 +1,10 @@
+import loguru
 import pandas as pd
 import numpy as np
 
 
 def create_stat(df: pd.DataFrame, target_col: str = None) -> str:
+    loguru.logger.debug("Create statistics")
     lines = []
 
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()

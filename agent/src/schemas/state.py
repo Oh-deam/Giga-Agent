@@ -15,17 +15,18 @@ class Attempt(BaseModel):
     )
 
 
-class FeatureState(BaseModel):
-    """Состояние попытки"""
-    attempts: list[Attempt] = Field(default_factory=list, description="Список попыток")
-    attempt: int = Field(default=0, description="Текущая попытка")
-    max_attempt: int = Field(default=3, description=" Максимум попыток")
-
-
 class Decision(enum.Enum):
     RETRY="RETRY"
     IMPROVE="IMPROVE"
     FINISH="FINISH"
+
+
+class FeatureState(BaseModel):
+    """Состояние попытки"""
+    attempts: list[Attempt] = Field(default_factory=list, description="Список попыток")
+    attempt: int = Field(default=0, description="Текущая попытка")
+    max_attempt: int = Field(default=10, description=" Максимум попыток")
+    decision: Decision = Field(default=None, description="Последнее принятое решение")
 
 
 class GigaChatDecision(BaseModel):
